@@ -1,5 +1,12 @@
 #pragma once
-
+// =========================================================
+// AUTHOR :: Authoritative Server Creation Tool ::
+// (c) 2022 Cameron Jensen ::
+// =========================================================
+// [core/renderer]
+// =========================================================
+// Notes:
+// =========================================================
 // Standard library headers
 #include <iostream>
 #include <format>
