@@ -17,14 +17,16 @@ add_executable(
         lib/imgui/src/imgui_impl_opengl3.cpp
         lib/imgui/src/imgui_tables.cpp
         lib/imgui/src/imgui_widgets.cpp
-        include/vec.h)
+)
 
 target_include_directories(
         author PUBLIC
         include
-        lib/imgui/include
-        lib/glad/include
         lib/glfw
+        lib/glad/include
+        lib/imgui/include
+        lib/libuv/include
         lib/json
 )
 target_link_libraries(author ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw/glfw3.lib)
+target_link_libraries(author ${CMAKE_CURRENT_SOURCE_DIR}/lib/libuv/lib/uv.lib)

@@ -14,8 +14,6 @@ namespace Author
 {
     class AppCore
     {
-
-
         Core::Renderer *renderer;
         Core::GUI *gui;
     public:
