@@ -6,23 +6,24 @@
 // =========================================================
 // Notes:
 // =========================================================
-#include "core/ui.h"
-#include "core/renderer.h"
+#include "core/ui/ui.h"
+#include "core/ui/renderer.h"
 
 #include <utility>
 
-/// ====================================================================
-/// UI::GUI
-/// In progress: Decouple GLFW/Renderer from ImGui and GUI class
-/// As long as GLFW (or other backend) initialized FIRST, this is fine.
-/// ====================================================================
+/// ======================================================================
+/// TODO: GUI should have ownership of renderer. It is the only object using it.
+/// ======================================================================
 
-Author::Core::GUI::GUI()
+Author::Core::GUI::GUI(IVec2 windowSize)
 {
+    uiRenderer = new UIRenderer();
+    uiRenderer->Init("AUTHOR // Server Creation and Management Tool", windowSize);
     windows = {};
+    shouldClose = false;
 }
 
-bool Author::Core::GUI::Init(Author::Core::Renderer *renderer)
+bool Author::Core::GUI::Init()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -31,16 +32,16 @@ bool Author::Core::GUI::Init(Author::Core::Renderer *renderer)
 
     ImGui::StyleColorsDark();
     imgui_io.FontGlobalScale = 1.50f;
-    ImGui_ImplGlfw_InitForOpenGL(renderer->GetGLFWWindow(), true);
+    ImGui_ImplGlfw_InitForOpenGL(uiRenderer->GetGLFWWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
     InstallStyle(true, 1.0f);
-    InstallCoreWindows();
+    InstallDefaultUIWindows();
 
     return true;
 }
 
-void Author::Core::GUI::AddWindow(GUIWindow w)
+void Author::Core::GUI::AddWindow(UIWindow w)
 {
     windows.emplace_back(std::move(w));
 }
@@ -56,7 +57,7 @@ void Author::Core::GUI::RemoveWindow(const std::string &name)
     }
 }
 
-Author::Core::GUIWindow *Author::Core::GUI::GetWindow(const std::string &name)
+Author::Core::UIWindow *Author::Core::GUI::GetWindow(const std::string &name)
 {
     for (auto &window: windows)
     {
@@ -74,10 +75,13 @@ void Author::Core::GUI::Tick()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    for (const GUIWindow &window: this->windows) window.Draw();
+    for (const UIWindow &window: this->windows) window.Draw();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Check backend for close event and update
+    this->shouldClose = uiRenderer->shouldClose;
 }
 
 Author::Core::GUI::~GUI()
@@ -85,6 +89,82 @@ Author::Core::GUI::~GUI()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+}
+
+void Author::Core::GUI::InstallDefaultUIWindows()
+{
+    // =============== Begin Main Menu =================
+    Author::Core::UIWindow mainMenu = Author::Core::UIWindow(
+            Author::Core::OnDrawFunction(
+                    [&]()
+                    {
+                        if (ImGui::BeginMainMenuBar())
+                        {
+                            if (ImGui::BeginMenu("File"))
+                            {
+                                if (ImGui::MenuItem("New"))
+                                {}
+                                if (ImGui::MenuItem("Save"))
+                                {}
+                                ImGui::EndMenu();
+                            }
+                            if (ImGui::BeginMenu("Edit"))
+                            {
+                                if (ImGui::MenuItem("Preferences"))
+                                {}
+                                ImGui::EndMenu();
+                            }
+                            ImGui::EndMainMenuBar();
+                        }
+                    }
+            ),
+            "MainMenu",
+            true
+    );
+    this->AddWindow(mainMenu);
+    // =============== End Main Menu ===================
+    // =============== Begin Test Window ===============
+    Author::Core::UIWindow testWindow = Author::Core::UIWindow(
+            Author::Core::OnDrawFunction(
+                    [&]()
+                    {
+                        ImGui::Begin("Test Window", &testWindow.enabled);
+                        ImGui::Text("ImGui::Text");
+                        if (ImGui::Button("ImGui::Button"))
+                        {
+                            std::cout << "On Button Clicked.\r\n";
+                        }
+                        ImGui::End();
+                    }),
+            "Test Window1",
+            true);
+    this->AddWindow(testWindow);
+    // =============== End Test Window =================
+}
+
+
+/// =================================================================
+/// Author::Core::UIWindow
+/// =================================================================
+/// TODO: Split GUI and UIWindow into separate files.
+/// =================================================================
+Author::Core::UIWindow::UIWindow(OnDrawFunction &wFunc, std::string wName, bool enabled)
+{
+    this->Draw = wFunc;
+    this->name = std::move(wName);
+    this->enabled = enabled;
+}
+
+Author::Core::UIWindow::UIWindow(OnDrawFunction &&wFunc, std::string wName, bool enabled)
+{
+    this->Draw = std::move(wFunc);
+    this->name = std::move(wName);
+    this->enabled = enabled;
+}
+
+void Author::Core::UIWindow::Toggle()
+{
+    this->enabled = !this->enabled;
 }
 
 inline void Author::Core::GUI::InstallStyle(bool usingDarkMode, float alpha)
@@ -168,67 +248,4 @@ inline void Author::Core::GUI::InstallStyle(bool usingDarkMode, float alpha)
             }
         }
     }
-}
-
-void Author::Core::GUI::InstallCoreWindows()
-{
-    // =============== Begin Main Menu =================
-    Author::Core::GUIWindow mainMenu = Author::Core::GUIWindow(
-            Author::Core::windowFunction(
-                    [&]()
-                    {
-                        ImGui::BeginMainMenuBar();
-                        ImGui::MenuItem("File");
-                        ImGui::EndMainMenuBar();
-                    }
-            ),
-            "MainMenuBar",
-            true
-    );
-    this->AddWindow(mainMenu);
-    // =============== End Main Menu ===================
-    // =============== Begin Test Window ===============
-    Author::Core::GUIWindow testWindow = Author::Core::GUIWindow(
-            Author::Core::windowFunction(
-                    [&]()
-                    {
-                        ImGui::Begin("Test Window", &testWindow.enabled);
-                        ImGui::Text("ImGui::Text");
-                        if (ImGui::Button("ImGui::Button"))
-                        {
-                            std::cout << "On Button Clicked.\r\n";
-                        }
-                        ImGui::SameLine();
-                        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                                    1000.0f / ImGui::GetIO().Framerate,
-                                    ImGui::GetIO().Framerate);
-                        ImGui::End();
-                    }),
-            "Test Window1",
-            true);
-    this->AddWindow(testWindow);
-    // =============== End Test Window =================
-}
-
-
-/// =================================================================
-/// Author::Core::GUIWindow
-/// =================================================================
-Author::Core::GUIWindow::GUIWindow(std::function<void()> &wFunc, std::string wName, bool enabled)
-{
-    this->Draw = wFunc;
-    this->name = std::move(wName);
-    this->enabled = enabled;
-}
-
-Author::Core::GUIWindow::GUIWindow(std::function<void()> &&wFunc, std::string wName, bool enabled)
-{
-    this->Draw = std::move(wFunc);
-    this->name = std::move(wName);
-    this->enabled = enabled;
-}
-
-void Author::Core::GUIWindow::Toggle()
-{
-    this->enabled = !this->enabled;
 }

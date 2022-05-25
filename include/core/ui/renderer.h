@@ -3,7 +3,7 @@
 // AUTHOR :: Authoritative Server Creation Tool ::
 // (c) 2022 Cameron Jensen ::
 // =========================================================
-// [core/renderer]
+// [core/uiRenderer]
 // =========================================================
 // Notes:
 // =========================================================
@@ -19,15 +19,15 @@
 
 namespace Author::Core
 {
-    class Renderer
+    class UIRenderer
     {
-        bool shouldClose;
         GLFWwindow *window;
     public:
-        Renderer();
-        ~Renderer();
+        bool shouldClose;
+    public:
+        UIRenderer();
+        ~UIRenderer();
         bool Init(const std::string &wTitle, IVec2 windowSize);
-        bool ShouldClose();
         GLFWwindow *GetGLFWWindow();
         void Tick();
     private:

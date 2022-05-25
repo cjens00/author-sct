@@ -17,40 +17,53 @@
 #include <optional>
 
 // ImGui Headers
-#include "../../lib/imgui/include/imgui.h"
-#include "../../lib/imgui/include/imgui_impl_glfw.h"
-#include "../../lib/imgui/include/imgui_impl_opengl3.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
-#include "core/renderer.h"
+#include "renderer.h"
 
 namespace Author::Core
 {
-    typedef std::function<void()> windowFunction; // name could be better
-    class GUIWindow
+    typedef std::function<void()> OnDrawFunction;
+    class UIWindow
     {
     public:
         bool enabled;
         std::string name;
-        windowFunction Draw;
+        OnDrawFunction Draw;
     public:
-        GUIWindow(windowFunction &wFunc, std::string wName, bool enabled);
-        GUIWindow(windowFunction &&wFunc, std::string wName, bool enabled);
+        UIWindow(OnDrawFunction &wFunc, std::string wName, bool enabled);
+
+        UIWindow(OnDrawFunction &&wFunc, std::string wName, bool enabled);
+
         void Toggle();
     };
 
     class GUI
     {
-        std::vector<GUIWindow> windows;
+        Core::UIRenderer *uiRenderer;
+        std::vector<UIWindow> windows;
     public:
-        GUI();
+        bool shouldClose;
+    public:
+        GUI(IVec2 windowSize);
+
         ~GUI();
-        bool Init(Author::Core::Renderer *renderer);
-        void AddWindow(GUIWindow w);
+
+        bool Init();
+
+        void AddWindow(UIWindow w);
+
         void RemoveWindow(const std::string &name);
-        GUIWindow *GetWindow(const std::string& name);
+
+        UIWindow *GetWindow(const std::string &name);
+
         void Tick();
+
     private:
-        void InstallCoreWindows();
+        void InstallDefaultUIWindows();
+
         static inline void InstallStyle(bool usingDarkMode, float alpha);
     };
 }

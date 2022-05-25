@@ -2,19 +2,19 @@
 // AUTHOR :: Authoritative Server Creation Tool ::
 // (c) 2022 Cameron Jensen ::
 // =========================================================
-// [core/renderer]
+// [core/uiRenderer]
 // =========================================================
 // Notes:
 // =========================================================
-#include "core/renderer.h"
+#include "core/ui/renderer.h"
 
-Author::Core::Renderer::Renderer()
+Author::Core::UIRenderer::UIRenderer()
 {
     this->shouldClose = false;
     this->window = nullptr;
 }
 
-bool Author::Core::Renderer::Init(const std::string &wTitle, IVec2 windowSize)
+bool Author::Core::UIRenderer::Init(const std::string &wTitle, IVec2 windowSize)
 {
     if (!glfwInit()) return false;
     this->window = glfwCreateWindow(windowSize.x, windowSize.y, wTitle.c_str(), nullptr, nullptr);
@@ -33,27 +33,27 @@ bool Author::Core::Renderer::Init(const std::string &wTitle, IVec2 windowSize)
     return true;
 }
 
-void Author::Core::Renderer::GLFWCallbackError(int ec, const char *desc)
+void Author::Core::UIRenderer::GLFWCallbackError(int ec, const char *desc)
 {
     std::cout << std::format("GLFW Error {}: {}\r\n", ec, desc);
 }
 
-void Author::Core::Renderer::GLFWCallbackWindowPos(GLFWwindow *window, int x, int y)
+void Author::Core::UIRenderer::GLFWCallbackWindowPos(GLFWwindow *window, int x, int y)
 {
     glfwSetWindowPos(window, x, y);
 }
 
-void Author::Core::Renderer::GLFWCallbackWindowSize(GLFWwindow *window, int w, int h)
+void Author::Core::UIRenderer::GLFWCallbackWindowSize(GLFWwindow *window, int w, int h)
 {
     glfwSetWindowSize(window, w, h);
 }
 
-void Author::Core::Renderer::GLFWCallbackFBSize(GLFWwindow *window, int w, int h)
+void Author::Core::UIRenderer::GLFWCallbackFBSize(GLFWwindow *window, int w, int h)
 {
     glViewport(0, 0, w, h);
 }
 
-void Author::Core::Renderer::InstallCallbacks()
+void Author::Core::UIRenderer::InstallCallbacks()
 {
     glfwSetErrorCallback(GLFWCallbackError);
     glfwSetWindowSizeCallback(this->window, GLFWCallbackWindowSize);
@@ -61,18 +61,18 @@ void Author::Core::Renderer::InstallCallbacks()
     glfwSetFramebufferSizeCallback(this->window, GLFWCallbackFBSize);
 }
 
-GLFWwindow *Author::Core::Renderer::GetGLFWWindow()
+GLFWwindow *Author::Core::UIRenderer::GetGLFWWindow()
 {
     return this->window;
 }
 
-Author::Core::Renderer::~Renderer()
+Author::Core::UIRenderer::~UIRenderer()
 {
     glfwDestroyWindow(this->window);
     glfwTerminate();
 }
 
-void Author::Core::Renderer::Tick()
+void Author::Core::UIRenderer::Tick()
 {
     this->shouldClose = glfwWindowShouldClose(this->window);
     glfwSwapBuffers(this->window);
@@ -80,11 +80,3 @@ void Author::Core::Renderer::Tick()
     glClearColor(0.65f,0.55f,0.55f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-
-bool Author::Core::Renderer::ShouldClose()
-{
-    return this->shouldClose;
-}
-
-
-
