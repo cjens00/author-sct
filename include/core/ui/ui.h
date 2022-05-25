@@ -13,7 +13,6 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
-#include <functional>
 #include <optional>
 
 // ImGui Headers
@@ -23,47 +22,73 @@
 
 #include "renderer.h"
 
-namespace Author::Core
+namespace Author::UI
 {
-    typedef std::function<void()> OnDrawFunction;
-    class UIWindow
+    struct UIElementTriggers
     {
-    public:
-        bool enabled;
-        std::string name;
-        OnDrawFunction Draw;
-    public:
-        UIWindow(OnDrawFunction &wFunc, std::string wName, bool enabled);
+        // Main Menu trigger
+        bool showMainMenuBar = true;
 
-        UIWindow(OnDrawFunction &&wFunc, std::string wName, bool enabled);
+        // Project View triggers
+        bool showProjectViewWindow = true;
+        bool projectViewTree_RootIsOpen = true;
 
-        void Toggle();
+        // Server Editor View triggers
+        bool showServerEditorViewWindow = true;
+
+        // Console View triggers
+        bool showConsoleView = true;
     };
 
     class UI
     {
-        Core::UIRenderer *uiRenderer;
-        std::vector<UIWindow> windows;
-    public:
-        bool shouldClose;
-    public:
-        UI(IVec2 windowSize);
+        /// ImGuiIO for quick access to ImGui fields
+        ImGuiIO *io;
 
+        /// The UI's rendering component, soon will
+        /// support more than just GLFW/GL 3.3 core.
+        Renderer *uiRenderer;
+
+        /// Boolean triggers true for UI Windows/Menus
+        /// drawn this frame.
+        UIElementTriggers triggers;
+        bool showImGuiDemoWindow = false;
+
+        float yOffsetMainMenu = 0.0f;
+
+    public:
+        /// True when the user has requested to close
+        /// the application in a normal manner.
+        bool appShouldClose;
+
+    public:
+        /// Creates a new UI for the CoreApp. Default window size: 1920 x 1200.
+        UI();
+
+        /// Creates a new UI for the CoreApp with the specified window size.
+        explicit UI(IVec2 windowSize);
+
+        /// Destroys this UI along with its ImGui context.
         ~UI();
 
+        /// Initializes backend components that the UI depends on.
         bool Init();
 
-        void AddWindow(UIWindow w);
-
-        void RemoveWindow(const std::string &name);
-
-        UIWindow *GetWindow(const std::string &name);
-
+        /// Advances the rendering of this UI by one frame.
         void Tick();
 
     private:
-        void InstallDefaultUIWindows();
+        ///
+        void Draw();
 
         static inline void InstallStyle(bool usingDarkMode, float alpha);
+
+        void ShowConsoleView();
+
+        void ShowMainMenu();
+
+        void ShowProjectView();
+
+        void ShowServerEditorView();
     };
 }

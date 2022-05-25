@@ -12,163 +12,179 @@
 #include <utility>
 
 /// ======================================================================
-/// TODO: UI should have ownership of renderer. It is the only object using it.
+/// TODO: Change the font to something tolerable.
+/// TODO: Get a working console going.
+/// TODO: Serialization and save system.
+/// TODO: Start working on the server templates.
 /// ======================================================================
 
-Author::Core::UI::UI(IVec2 windowSize)
+Author::UI::UI::UI()
 {
-    uiRenderer = new UIRenderer();
-    uiRenderer->Init("AUTHOR // Server Creation and Management Tool", windowSize);
-    windows = {};
-    shouldClose = false;
+    uiRenderer = new Renderer();
+    uiRenderer->Init("AUTHOR Early Preview || Developer Build", IVec2{.x=1920, .y=1200});
+    io = nullptr;
+
+    triggers = UIElementTriggers{};
+    showImGuiDemoWindow = false;
+
+    appShouldClose = false;
 }
 
-bool Author::Core::UI::Init()
+Author::UI::UI::UI(IVec2 windowSize)
+{
+    uiRenderer = new Renderer();
+    uiRenderer->Init("AUTHOR // Server Creation and Management Tool", windowSize);
+    io = nullptr;
+
+    triggers = UIElementTriggers{};
+    showImGuiDemoWindow = false;
+
+    appShouldClose = false;
+}
+
+bool Author::UI::UI::Init()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO &imgui_io = ImGui::GetIO();
-    (void) imgui_io;
+    io = &ImGui::GetIO();
+    (void) *io;
 
     ImGui::StyleColorsDark();
-    imgui_io.FontGlobalScale = 1.50f;
+    io->FontGlobalScale = 1.75f;
     ImGui_ImplGlfw_InitForOpenGL(uiRenderer->GetGLFWWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
-
     InstallStyle(true, 1.0f);
-    InstallDefaultUIWindows();
 
     return true;
 }
 
-void Author::Core::UI::AddWindow(UIWindow w)
+void Author::UI::UI::Tick()
 {
-    windows.emplace_back(std::move(w));
-}
+    // Check backend for appShouldClose event and update
+    this->appShouldClose = this->uiRenderer->shouldClose;
+    this->uiRenderer->Tick();
 
-void Author::Core::UI::RemoveWindow(const std::string &name)
-{
-    for (int i = 0; i < windows.size(); i++)
-    {
-        if (windows[i].name == name)
-        {
-            windows.erase(windows.begin() + i);
-        }
-    }
-}
-
-Author::Core::UIWindow *Author::Core::UI::GetWindow(const std::string &name)
-{
-    for (auto &window: windows)
-    {
-        if (window.name == name)
-        {
-            return &window;
-        }
-    }
-    return nullptr;
-}
-
-/// TODO: Clean this method up. Move all to uiRenderer calls with UI state data.
-void Author::Core::UI::Tick()
-{
-    uiRenderer->Tick();
-
+    // Start a new frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    for (const UIWindow &window: this->windows) window.Draw();
+    this->Draw();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    // Check backend for close event and update
-    this->shouldClose = uiRenderer->shouldClose;
+    this->uiRenderer->SwapBuffer();
 }
 
-Author::Core::UI::~UI()
+Author::UI::UI::~UI()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void Author::Core::UI::InstallDefaultUIWindows()
+void Author::UI::UI::Draw()
 {
-    // =============== Begin Main Menu =================
-    Author::Core::UIWindow mainMenu = Author::Core::UIWindow(
-            Author::Core::OnDrawFunction(
-                    [&]()
-                    {
-                        if (ImGui::BeginMainMenuBar())
-                        {
-                            if (ImGui::BeginMenu("File"))
-                            {
-                                if (ImGui::MenuItem("New"))
-                                {}
-                                if (ImGui::MenuItem("Save"))
-                                {}
-                                ImGui::EndMenu();
-                            }
-                            if (ImGui::BeginMenu("Edit"))
-                            {
-                                if (ImGui::MenuItem("Preferences"))
-                                {}
-                                ImGui::EndMenu();
-                            }
-                            ImGui::EndMainMenuBar();
-                        }
-                    }
-            ),
-            "MainMenu",
-            true
-    );
-    this->AddWindow(mainMenu);
-    // =============== End Main Menu ===================
-    // =============== Begin Test Window ===============
-    Author::Core::UIWindow testWindow = Author::Core::UIWindow(
-            Author::Core::OnDrawFunction(
-                    [&]()
-                    {
-                        ImGui::Begin("Test Window", &testWindow.enabled);
-                        ImGui::Text("ImGui::Text");
-                        if (ImGui::Button("ImGui::Button"))
-                        {
-                            std::cout << "On Button Clicked.\r\n";
-                        }
-                        ImGui::End();
-                    }),
-            "Test Window1",
-            true);
-    this->AddWindow(testWindow);
-    // =============== End Test Window =================
+    // Draw the UI Menu/Windows.
+    // Note: showMainMenuBar is always true, but this may change later.
+    if (triggers.showMainMenuBar) ShowMainMenu();
+    if (triggers.showProjectViewWindow) ShowProjectView();
+    if (triggers.showServerEditorViewWindow) ShowServerEditorView();
+    if (showImGuiDemoWindow) ImGui::ShowDemoWindow(&showImGuiDemoWindow);
 }
 
-
-/// =================================================================
-/// Author::Core::UIWindow
-/// =================================================================
-/// TODO: Split UI and UIWindow into separate files.
-/// =================================================================
-Author::Core::UIWindow::UIWindow(OnDrawFunction &wFunc, std::string wName, bool enabled)
+void Author::UI::UI::ShowMainMenu()
 {
-    this->Draw = wFunc;
-    this->name = std::move(wName);
-    this->enabled = enabled;
+    if (ImGui::BeginMainMenuBar())
+    {
+        yOffsetMainMenu = ImGui::GetWindowSize().y;
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("New"))
+            {}
+            if (ImGui::MenuItem("Save"))
+            {}
+            if (ImGui::MenuItem("ImGui Demo"))
+            {
+                this->showImGuiDemoWindow = !this->showImGuiDemoWindow;
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Preferences"))
+            {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
 }
 
-Author::Core::UIWindow::UIWindow(OnDrawFunction &&wFunc, std::string wName, bool enabled)
+void Author::UI::UI::ShowConsoleView()
 {
-    this->Draw = std::move(wFunc);
-    this->name = std::move(wName);
-    this->enabled = enabled;
+//    ImGui::SetNextWindowPos(ImVec2{
+//            io->DisplaySize.x * 0.125f,
+//            yOffsetMainMenu});
+//    ImGui::SetNextWindowSize(ImVec2{
+//            io->DisplaySize.x * 0.8875f,
+//            (io->DisplaySize.y - yOffsetMainMenu)});
+//    if (ImGui::Begin("Console", nullptr,
+//                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
+//    {
+//        ImGui::
+//    }
+//    ImGui::End();
 }
 
-void Author::Core::UIWindow::Toggle()
+void Author::UI::UI::ShowProjectView()
 {
-    this->enabled = !this->enabled;
+    ImGui::SetNextWindowPos(ImVec2{0.0f, yOffsetMainMenu});
+    ImGui::SetNextWindowSize(ImVec2{
+            io->DisplaySize.x * 0.125f,
+            (io->DisplaySize.y - yOffsetMainMenu)});
+    if (ImGui::Begin("Project Navigator", nullptr,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar))
+    {
+
+        ImGui::BeginTable("Project Navigator", 1);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Button("Overview", ImVec2{
+            ImGui::GetWindowSize().x - 10.0f,
+            ImGui::GetWindowSize().y * 0.1f });
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Button("Administration", ImVec2{
+                ImGui::GetWindowSize().x - 10.0f,
+                ImGui::GetWindowSize().y * 0.1f });
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Button("Editor", ImVec2{
+                ImGui::GetWindowSize().x - 10.0f,
+                ImGui::GetWindowSize().y * 0.1f });
+
+        ImGui::EndTable();
+    }
+    ImGui::End();
 }
 
-inline void Author::Core::UI::InstallStyle(bool usingDarkMode, float alpha)
+void Author::UI::UI::ShowServerEditorView()
+{
+    ImGui::SetNextWindowPos(ImVec2{
+            io->DisplaySize.x * 0.125f,
+            yOffsetMainMenu});
+    ImGui::SetNextWindowSize(ImVec2{
+            io->DisplaySize.x * 0.8875f,
+            (io->DisplaySize.y - yOffsetMainMenu)});
+    if (ImGui::Begin("Project View", nullptr,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::Text("Project Editor");
+    }
+    ImGui::End();
+}
+
+inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
 {
     ImGuiStyle &style = ImGui::GetStyle();
     style.Alpha = 1.0f;

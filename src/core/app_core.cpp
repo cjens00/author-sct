@@ -10,24 +10,21 @@
 
 Author::AppCore::AppCore()
 {
-    this->ui = new Author::Core::UI(IVec2{.x = 1920, .y = 1200});
+    this->appShouldClose = false;
+    this->ui = new UI::UI(IVec2{.x = 1920, .y = 1200});
     this->ui->Init();
 }
 
 Author::AppCore::AppCore(IVec2 windowSize)
 {
-    this->ui = new Author::Core::UI(windowSize);
+    this->appShouldClose = false;
+    this->ui = new UI::UI(windowSize);
 }
 
 void Author::AppCore::Run()
 {
-    while (!ShouldClose())
+    while (!(appShouldClose = ui->appShouldClose))
     {
         this->ui->Tick();
     }
-}
-
-bool Author::AppCore::ShouldClose()
-{
-    return ui->shouldClose;
 }

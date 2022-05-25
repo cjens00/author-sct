@@ -14,12 +14,11 @@ namespace Author
 {
     class AppCore
     {
-        Core::UI *ui;
+        bool appShouldClose;
+        UI::UI *ui;
     public:
         AppCore();
         explicit AppCore(IVec2 windowSize);
         void Run();
-    private:
-        bool ShouldClose();
     };
 }
