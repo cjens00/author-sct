@@ -7,18 +7,17 @@
 // =========================================================
 // Notes:
 // =========================================================
-#include "renderer.h"
-#include "ui.h"
+#include "core/ui/renderer.h"
+#include "core/ui/ui.h"
 
 namespace Author
 {
     class AppCore
     {
-        Core::Renderer *renderer;
-        Core::GUI *gui;
+        Core::UI *ui;
     public:
         AppCore();
-        AppCore(IVec2 windowSize);
+        explicit AppCore(IVec2 windowSize);
         void Run();
     private:
         bool ShouldClose();

@@ -6,9 +6,9 @@ add_link_options(/NODEFAULTLIB:msvcrt)
 add_executable(
         author
         src/main.cpp
-        src/core/ui.cpp
+        src/core/ui/ui.cpp
         src/core/app_core.cpp
-        src/core/renderer.cpp
+        src/core/ui/renderer.cpp
         lib/glad/src/glad.c
         lib/imgui/src/imgui.cpp
         lib/imgui/src/imgui_demo.cpp
