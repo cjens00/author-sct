@@ -35,6 +35,7 @@ namespace Author::UI
         ImVec2 posWindowLeft;
         ImVec2 posWindowRight;
         ImVec2 posWindowConsole;
+        int counter = 0;
     };
 
     class UI
