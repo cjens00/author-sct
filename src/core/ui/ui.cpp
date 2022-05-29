@@ -23,10 +23,7 @@ Author::UI::UI::UI()
     uiRenderer = new Renderer();
     uiRenderer->Init("AUTHOR Early Preview || Developer Build", IVec2{.x=1920, .y=1200});
     io = nullptr;
-
-    triggers = UIElementTriggers{};
-    showImGuiDemoWindow = false;
-
+    es = {};
     appShouldClose = false;
 }
 
@@ -35,10 +32,7 @@ Author::UI::UI::UI(IVec2 windowSize)
     uiRenderer = new Renderer();
     uiRenderer->Init("AUTHOR // Server Creation and Management Tool", windowSize);
     io = nullptr;
-
-    triggers = UIElementTriggers{};
-    showImGuiDemoWindow = false;
-
+    es = {};
     appShouldClose = false;
 }
 
@@ -86,17 +80,13 @@ void Author::UI::UI::Draw()
 {
     // Draw the UI Menu/Windows.
     // Note: showMainMenuBar is always true, but this may change later.
-    if (triggers.showMainMenuBar) ShowMainMenu();
-    if (triggers.showProjectViewWindow) ShowProjectView();
-    if (triggers.showServerEditorViewWindow) ShowServerEditorView();
-    if (showImGuiDemoWindow) ImGui::ShowDemoWindow(&showImGuiDemoWindow);
+    if (es.showMainMenuBar) ShowMainMenu();
 }
 
-void Author::UI::UI::ShowMainMenu()
+ImVec2 Author::UI::UI::ShowMainMenu()
 {
     if (ImGui::BeginMainMenuBar())
     {
-        yOffsetMainMenu = ImGui::GetWindowSize().y;
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("New"))
@@ -119,70 +109,11 @@ void Author::UI::UI::ShowMainMenu()
     }
 }
 
-void Author::UI::UI::ShowConsoleView()
+
+void Author::UI::UI::DrawLayout()
 {
-//    ImGui::SetNextWindowPos(ImVec2{
-//            io->DisplaySize.x * 0.125f,
-//            yOffsetMainMenu});
-//    ImGui::SetNextWindowSize(ImVec2{
-//            io->DisplaySize.x * 0.8875f,
-//            (io->DisplaySize.y - yOffsetMainMenu)});
-//    if (ImGui::Begin("Console", nullptr,
-//                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
-//    {
-//        ImGui::
-//    }
-//    ImGui::End();
 }
 
-void Author::UI::UI::ShowProjectView()
-{
-    ImGui::SetNextWindowPos(ImVec2{0.0f, yOffsetMainMenu});
-    ImGui::SetNextWindowSize(ImVec2{
-            io->DisplaySize.x * 0.125f,
-            (io->DisplaySize.y - yOffsetMainMenu)});
-    if (ImGui::Begin("Project Navigator", nullptr,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar))
-    {
-
-        ImGui::BeginTable("Project Navigator", 1);
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Button("Overview", ImVec2{
-            ImGui::GetWindowSize().x - 10.0f,
-            ImGui::GetWindowSize().y * 0.1f });
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Button("Administration", ImVec2{
-                ImGui::GetWindowSize().x - 10.0f,
-                ImGui::GetWindowSize().y * 0.1f });
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Button("Editor", ImVec2{
-                ImGui::GetWindowSize().x - 10.0f,
-                ImGui::GetWindowSize().y * 0.1f });
-
-        ImGui::EndTable();
-    }
-    ImGui::End();
-}
-
-void Author::UI::UI::ShowServerEditorView()
-{
-    ImGui::SetNextWindowPos(ImVec2{
-            io->DisplaySize.x * 0.125f,
-            yOffsetMainMenu});
-    ImGui::SetNextWindowSize(ImVec2{
-            io->DisplaySize.x * 0.8875f,
-            (io->DisplaySize.y - yOffsetMainMenu)});
-    if (ImGui::Begin("Project View", nullptr,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
-    {
-        ImGui::Text("Project Editor");
-    }
-    ImGui::End();
-}
 
 inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
 {
@@ -266,3 +197,4 @@ inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
         }
     }
 }
+

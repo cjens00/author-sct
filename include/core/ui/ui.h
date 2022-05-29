@@ -24,20 +24,13 @@
 
 namespace Author::UI
 {
-    struct UIElementTriggers
+    struct ElementState
     {
         // Main Menu trigger
         bool showMainMenuBar = true;
 
-        // Project View triggers
-        bool showProjectViewWindow = true;
-        bool projectViewTree_RootIsOpen = true;
-
-        // Server Editor View triggers
-        bool showServerEditorViewWindow = true;
-
-        // Console View triggers
-        bool showConsoleView = true;
+        // Console trigger
+        bool showConsole = true;
     };
 
     class UI
@@ -45,18 +38,17 @@ namespace Author::UI
         /// ImGuiIO for quick access to ImGui fields
         ImGuiIO *io;
 
+        /// Keeps track of UI element size & position, flags, etc.
+        ElementState es;
+
         /// The UI's rendering component, soon will
         /// support more than just GLFW/GL 3.3 core.
         Renderer *uiRenderer;
 
-        /// Boolean triggers true for UI Windows/Menus
-        /// drawn this frame.
-        UIElementTriggers triggers;
         bool showImGuiDemoWindow = false;
 
-        float yOffsetMainMenu = 0.0f;
-
     public:
+
         /// True when the user has requested to close
         /// the application in a normal manner.
         bool appShouldClose;
@@ -74,21 +66,22 @@ namespace Author::UI
         /// Initializes backend components that the UI depends on.
         bool Init();
 
-        /// Advances the rendering of this UI by one frame.
+        /// Advances the rendering of this UI by one frame. ~~
         void Tick();
 
     private:
-        ///
+
+        /// ----------------------------
         void Draw();
 
+        /// ----------------------------
+        ImVec2 ShowMainMenu();
+
+        /// Dynamic layout sizing and positioning by
+        /// using DrawLayout to update ElementState.
+        void DrawLayout();
+
+        /// ----------------------------
         static inline void InstallStyle(bool usingDarkMode, float alpha);
-
-        void ShowConsoleView();
-
-        void ShowMainMenu();
-
-        void ShowProjectView();
-
-        void ShowServerEditorView();
     };
 }
