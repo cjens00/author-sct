@@ -1,7 +1,6 @@
 #pragma once
 
 #include <uv.h>
-#include <uv/win.h>
 #include <vector>
 
 namespace Author::Core
