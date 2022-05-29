@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(authorproj)
+project(author-proj)
 set(CMAKE_CXX_STANDARD 23)
 add_link_options(/NODEFAULTLIB:msvcrt)
 
@@ -7,7 +7,7 @@ add_executable(
         author
         src/main.cpp
         src/core/app_core.cpp
-        src/core/server.cpp
+        #src/core/server.cpp
         src/core/ui/console.cpp
         src/core/ui/ui.cpp
         src/core/ui/renderer.cpp
@@ -27,8 +27,9 @@ target_include_directories(
         lib/glfw
         lib/glad/include
         lib/imgui/include
-        lib/libuv/include
+        #lib/libuv/include
         lib/json
 )
 target_link_libraries(author ${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw/glfw3.lib)
+
 target_link_libraries(author ${CMAKE_CURRENT_SOURCE_DIR}/lib/libuv/lib/uv.lib)

@@ -15,7 +15,6 @@
 /// TODO: Change the font to something tolerable.
 /// TODO: Get a working console going.
 /// TODO: Serialization and save system.
-/// TODO: Start working on the server templates.
 /// ======================================================================
 
 Author::UI::UI::UI()
@@ -78,12 +77,19 @@ Author::UI::UI::~UI()
 
 void Author::UI::UI::Draw()
 {
+    // Update layout
+    DrawLayout();
+
     // Draw the UI Menu/Windows.
     // Note: showMainMenuBar is always true, but this may change later.
     if (es.showMainMenuBar) ShowMainMenu();
+
+    ShowExplorer();
+    ShowEditor();
+    ShowConsole();
 }
 
-ImVec2 Author::UI::UI::ShowMainMenu()
+void Author::UI::UI::ShowMainMenu()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -109,11 +115,46 @@ ImVec2 Author::UI::UI::ShowMainMenu()
     }
 }
 
+void Author::UI::UI::ShowExplorer()
+{
+    ImGui::SetNextWindowPos(es.posWindowLeft);
+    ImGui::SetNextWindowSize(es.sizeWindowsCenter);
+    ImGui::Begin("Explorer", nullptr);
+    ImGui::End();
+}
+
+void Author::UI::UI::ShowEditor()
+{
+    ImGui::SetNextWindowPos(es.posWindowRight);
+    ImGui::SetNextWindowSize(es.sizeWindowsCenter);
+    ImGui::Begin("Editor", nullptr);
+    ImGui::End();
+}
+
+void Author::UI::UI::ShowConsole()
+{
+    ImGui::SetNextWindowPos(es.posWindowConsole);
+    ImGui::SetNextWindowSize(es.sizeWindowConsole);
+    ImGui::Begin("Console", nullptr);
+    ImGui::End();
+}
 
 void Author::UI::UI::DrawLayout()
 {
+    if (ImGui::BeginMainMenuBar())
+    {
+        es.mainMenuSize = ImGui::GetWindowSize();
+        ImGui::EndMainMenuBar();
+    }
+    es.sizeWindowsCenter.x = 0.50f * (io->DisplaySize.x);
+    es.sizeWindowsCenter.y = 0.75f * (io->DisplaySize.y - es.mainMenuSize.y);
+    es.sizeWindowConsole.x = io->DisplaySize.x;
+    es.sizeWindowConsole.y = 0.25f * (io->DisplaySize.y - es.mainMenuSize.y);
+    es.posWindowRight.x = es.sizeWindowsCenter.x;
+    es.posWindowLeft.x = 0.0f;
+    es.posWindowLeft.y = es.posWindowRight.y = es.mainMenuSize.y;
+    es.posWindowConsole.y = es.sizeWindowsCenter.y + es.mainMenuSize.y;
 }
-
 
 inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
 {

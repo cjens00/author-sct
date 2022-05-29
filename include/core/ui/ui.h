@@ -26,11 +26,17 @@ namespace Author::UI
 {
     struct ElementState
     {
-        // Main Menu trigger
         bool showMainMenuBar = true;
 
-        // Console trigger
-        bool showConsole = true;
+        ImVec2 mainMenuSize;
+
+        ImVec2 sizeWindowCenter;
+        ImVec2 sizeWindowConsole;
+        ImVec2 sizeWindowsCenter;
+
+        ImVec2 posWindowLeft;
+        ImVec2 posWindowRight;
+        ImVec2 posWindowConsole;
     };
 
     class UI
@@ -75,7 +81,18 @@ namespace Author::UI
         void Draw();
 
         /// ----------------------------
-        ImVec2 ShowMainMenu();
+        void ShowMainMenu();
+
+        /// ----------------------------
+        void ShowExplorer();
+
+        /// ----------------------------
+        void ShowEditor();
+
+        /// ----------------------------
+        void ShowConsole();
+
+
 
         /// Dynamic layout sizing and positioning by
         /// using DrawLayout to update ElementState.
