@@ -23,6 +23,8 @@ Author::UI::UI::UI()
     uiRenderer->Init("AUTHOR Early Preview || Developer Build", IVec2{.x=1920, .y=1200});
     io = nullptr;
     es = {};
+    console = {};
+    consoleBuf = "";
     appShouldClose = false;
 }
 
@@ -32,6 +34,8 @@ Author::UI::UI::UI(IVec2 windowSize)
     uiRenderer->Init("AUTHOR // Server Creation and Management Tool", windowSize);
     io = nullptr;
     es = {};
+    console = {};
+    consoleBuf = "";
     appShouldClose = false;
 }
 
@@ -46,7 +50,9 @@ bool Author::UI::UI::Init()
     io->FontGlobalScale = 1.75f;
     ImGui_ImplGlfw_InitForOpenGL(uiRenderer->GetGLFWWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
-    InstallStyle(true, 1.0f);
+    InstallStyle(1.0f);
+
+    console.Write("Debug: UI::Init() success.");
 
     return true;
 }
@@ -119,7 +125,10 @@ void Author::UI::UI::ShowExplorer()
 {
     ImGui::SetNextWindowPos(es.posWindowLeft);
     ImGui::SetNextWindowSize(es.sizeWindowLeft);
-    ImGui::Begin("Explorer", nullptr);
+    ImGui::Begin("Explorer", nullptr,
+                 ImGuiWindowFlags_NoTitleBar |
+                 ImGuiWindowFlags_NoResize
+    );
     ImGui::End();
 }
 
@@ -127,7 +136,10 @@ void Author::UI::UI::ShowEditor()
 {
     ImGui::SetNextWindowPos(es.posWindowRight);
     ImGui::SetNextWindowSize(es.sizeWindowRight);
-    ImGui::Begin("Editor", nullptr);
+    ImGui::Begin("Editor", nullptr,
+                 ImGuiWindowFlags_NoTitleBar |
+                 ImGuiWindowFlags_NoResize
+    );
     ImGui::End();
 }
 
@@ -135,7 +147,12 @@ void Author::UI::UI::ShowConsole()
 {
     ImGui::SetNextWindowPos(es.posWindowConsole);
     ImGui::SetNextWindowSize(es.sizeWindowConsole);
-    ImGui::Begin("Console", nullptr);
+    ImGui::Begin("Console", nullptr,
+                 ImGuiWindowFlags_NoResize |
+                 ImGuiWindowFlags_NoCollapse
+    );
+    console.Read(consoleBuf);
+    ImGui::Text("%s", consoleBuf.c_str());
     ImGui::End();
 }
 
@@ -147,13 +164,11 @@ void Author::UI::UI::DrawLayout()
         ImGui::EndMainMenuBar();
     }
 
-
     es.sizeWindowLeft.x = 0.25f * (io->DisplaySize.x);
     es.sizeWindowLeft.y = 0.75f * (io->DisplaySize.y - es.mainMenuSize.y);
 
     es.sizeWindowRight.x = 0.75f * (io->DisplaySize.x);
     es.sizeWindowRight.y = 0.75f * (io->DisplaySize.y - es.mainMenuSize.y);
-
 
     es.sizeWindowConsole.x = io->DisplaySize.x;
     es.sizeWindowConsole.y = 0.25f * (io->DisplaySize.y - es.mainMenuSize.y);
@@ -163,7 +178,7 @@ void Author::UI::UI::DrawLayout()
     es.posWindowConsole.y = es.sizeWindowLeft.y + es.mainMenuSize.y;
 }
 
-inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
+inline void Author::UI::UI::InstallStyle(float alpha)
 {
     ImGuiStyle &style = ImGui::GetStyle();
     style.Alpha = 1.0f;
@@ -212,36 +227,20 @@ inline void Author::UI::UI::InstallStyle(bool usingDarkMode, float alpha)
     style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 
-    if (usingDarkMode)
+    for (int i = 0; i <= ImGuiCol_COUNT; i++)
     {
-        for (int i = 0; i <= ImGuiCol_COUNT; i++)
-        {
-            ImVec4 &col = style.Colors[i];
-            float H, S, V;
-            ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
+        ImVec4 &col = style.Colors[i];
+        float H, S, V;
+        ImGui::ColorConvertRGBtoHSV(col.x, col.y, col.z, H, S, V);
 
-            if (S < 0.1f)
-            {
-                V = 1.0f - V;
-            }
-            ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
-            if (col.w < 1.00f)
-            {
-                col.w *= alpha;
-            }
-        }
-    } else
-    {
-        for (int i = 0; i <= ImGuiCol_COUNT; i++)
+        if (S < 0.1f)
         {
-            ImVec4 &col = style.Colors[i];
-            if (col.w < 1.00f)
-            {
-                col.x *= alpha;
-                col.y *= alpha;
-                col.z *= alpha;
-                col.w *= alpha;
-            }
+            V = 1.0f - V;
+        }
+        ImGui::ColorConvertHSVtoRGB(H, S, V, col.x, col.y, col.z);
+        if (col.w < 1.00f)
+        {
+            col.w *= alpha;
         }
     }
 }
