@@ -21,22 +21,21 @@
 #include "imgui_impl_opengl3.h"
 
 #include "renderer.h"
+#include "console.h"
 
 namespace Author::UI
 {
     struct ElementState
     {
         bool showMainMenuBar = true;
-
         ImVec2 mainMenuSize;
-
         ImVec2 sizeWindowLeft;
         ImVec2 sizeWindowRight;
         ImVec2 sizeWindowConsole;
-
         ImVec2 posWindowLeft;
         ImVec2 posWindowRight;
         ImVec2 posWindowConsole;
+        int counter = 0;
     };
 
     class UI
@@ -46,6 +45,9 @@ namespace Author::UI
 
         /// Keeps track of UI element size & position, flags, etc.
         ElementState es;
+
+        Console console;
+        std::string consoleBuf;
 
         /// The UI's rendering component, soon will
         /// support more than just GLFW/GL 3.3 core.
@@ -97,6 +99,6 @@ namespace Author::UI
         void DrawLayout();
 
         /// ----------------------------
-        static inline void InstallStyle(bool usingDarkMode, float alpha);
+        static inline void InstallStyle(float alpha);
     };
 }
