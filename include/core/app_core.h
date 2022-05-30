@@ -7,8 +7,8 @@
 // =========================================================
 // Notes:
 // =========================================================
-#include "core/ui/renderer.h"
 #include "core/ui/ui.h"
+#include "core/server.h"
 
 namespace Author
 {
@@ -16,6 +16,7 @@ namespace Author
     {
         bool appShouldClose;
         UI::UI *ui;
+        Core::Server server;
     public:
         AppCore();
         explicit AppCore(IVec2 windowSize);

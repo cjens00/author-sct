@@ -245,3 +245,8 @@ inline void Author::UI::UI::InstallStyle(float alpha)
     }
 }
 
+Console *Author::UI::UI::GetConsole()
+{
+    return &console;
+}
+

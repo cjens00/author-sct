@@ -13,12 +13,14 @@ Author::AppCore::AppCore()
     this->appShouldClose = false;
     this->ui = new UI::UI(IVec2{.x = 1920, .y = 1200});
     this->ui->Init();
+    this->server = {};
 }
 
 Author::AppCore::AppCore(IVec2 windowSize)
 {
     this->appShouldClose = false;
     this->ui = new UI::UI(windowSize);
+    this->server = {};
 }
 
 void Author::AppCore::Run()

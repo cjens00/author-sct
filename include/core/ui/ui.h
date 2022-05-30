@@ -35,7 +35,6 @@ namespace Author::UI
         ImVec2 posWindowLeft;
         ImVec2 posWindowRight;
         ImVec2 posWindowConsole;
-        int counter = 0;
     };
 
     class UI
@@ -47,6 +46,7 @@ namespace Author::UI
         ElementState es;
 
         Console console;
+    private:
         std::string consoleBuf;
 
         /// The UI's rendering component, soon will
@@ -76,6 +76,8 @@ namespace Author::UI
 
         /// Advances the rendering of this UI by one frame. ~~
         void Tick();
+
+        Console *GetConsole();
 
     private:
 
