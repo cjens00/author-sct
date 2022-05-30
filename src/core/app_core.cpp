@@ -13,18 +13,21 @@ Author::AppCore::AppCore()
     this->appShouldClose = false;
     this->ui = new UI::UI(IVec2{.x = 1920, .y = 1200});
     this->ui->Init();
-    this->server = {};
+    this->serverLauncher = {};
 }
 
 Author::AppCore::AppCore(IVec2 windowSize)
 {
     this->appShouldClose = false;
     this->ui = new UI::UI(windowSize);
-    this->server = {};
+    this->serverLauncher = {};
 }
 
 void Author::AppCore::Run()
 {
+    /// TODO: Start this in a new thread
+    serverLauncher.Start(ui->GetConsole());
+
     while (!(appShouldClose = ui->appShouldClose))
     {
         this->ui->Tick();

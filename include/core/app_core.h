@@ -16,7 +16,7 @@ namespace Author
     {
         bool appShouldClose;
         UI::UI *ui;
-        Core::Server server;
+        Core::ServerLauncher serverLauncher;
     public:
         AppCore();
         explicit AppCore(IVec2 windowSize);

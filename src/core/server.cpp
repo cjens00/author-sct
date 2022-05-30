@@ -2,39 +2,75 @@
 #include <format>
 #include "core/server.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmicrosoft-cast"
-Author::Core::Server::Server()
-{
-    this->sd = {};
+/// Currently using https://github.com/delaemon/libuv-tutorial/blob/master/tcp-echo-server.c
+/// Thank you @delaemon
+/// Under construction
 
+// Singleton, the only instance of ServerData that should exist
+Author::Core::Server::ServerData sd;
+
+void Author::Core::Server::InitializeServerData(Console *console)
+{
     sd.loop = uv_default_loop();
-    uv_tcp_init(sd.loop, &sd.tcpServer);
-    uv_ip4_addr("0.0.0.0", 5770, &sd.addr);
-    uv_tcp_bind(&sd.tcpServer, (const struct sockaddr *) &sd.addr, 0);
+    sd.console = console;
 }
 
-int Author::Core::Server::Listen()
+Author::Core::Server::ServerData &Author::Core::Server::GetServerData()
 {
-    return uv_listen((uv_stream_t *) &sd.tcpServer, sd.backlog, OnClientConnected);
+    return sd;
 }
 
-int Author::Core::Server::Start()
+int Author::Core::ServerLauncher::Start(Console *console)
 {
-    int rc = uv_run(sd.loop, UV_RUN_DEFAULT);
-    return rc;
+    Author::Core::Server::InitializeServerData(console);
+    auto serverData = Author::Core::Server::GetServerData();
+    uv_tcp_t server;
+    uv_tcp_init(serverData.loop, &server);
+    uv_ip4_addr("0.0.0.0", 12908, &serverData.addr);
+    uv_tcp_bind(&server, (const struct sockaddr*)&serverData.addr, 0);
+    int r = uv_listen((uv_stream_t*)&server, 128, Author::Core::Server::OnNewConnection);
+    if (r) {
+        fprintf(stderr, "Listen error %s\n", uv_strerror(r));
+        return 1;
+    }
+    int rv = uv_run(serverData.loop, UV_RUN_DEFAULT);
+    return rv;
 }
 
-int Author::Core::Server::GetPort(Author::Core::Transport txp, int index)
+void Author::Core::Server::AllocateBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
-    if (txp == Transport::TCP && tcpPorts.size() > index) return tcpPorts[index];
-    else std::cerr << std::format("Requested TCP port does not exist (index > tcpPorts.size()).");
-    if (txp == Transport::UDP && udpPorts.size() > index) return udpPorts[index];
-    else std::cerr << std::format("Requested UDP port does not exist (index > udpPorts.size()).");
-    return -1;
+    buf->base = (char *) malloc(suggested_size);
+    buf->len = suggested_size;
 }
 
-void Author::Core::Server::OnClientConnected(uv_stream_t *server, int status)
+void Author::Core::Server::EchoWrite(uv_write_t *req, int status)
+{
+    if (status)
+    {
+        fprintf(stderr, "Write error %s\n", uv_strerror(status));
+    }
+    free(req);
+}
+
+void Author::Core::Server::EchoRead(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
+{
+    if (nread < 0)
+    {
+        if (nread != UV_EOF)
+        {
+            fprintf(stderr, "Read error %s\n", uv_err_name(nread));
+            uv_close((uv_handle_t *) client, nullptr);
+        }
+    } else if (nread > 0)
+    {
+        uv_write_t *req = (uv_write_t *) malloc(sizeof(uv_write_t));
+        uv_buf_t wrbuf = uv_buf_init(buf->base, nread);
+        uv_write(req, client, &wrbuf, 1, EchoWrite);
+    }
+    if (buf->base) free(buf->base);
+}
+
+void Author::Core::Server::OnNewConnection(uv_stream_t *server, int status)
 {
     if (status < 0)
     {
@@ -45,51 +81,8 @@ void Author::Core::Server::OnClientConnected(uv_stream_t *server, int status)
     auto *client = (uv_tcp_t *) malloc(sizeof(uv_tcp_t));
     uv_tcp_init(sd.loop, client);
     if (uv_accept(server, (uv_stream_t *) client) == 0)
-    {
-        uv_read_start(
-                (uv_stream_t *) client,
-                static_cast<uv_alloc_cb>(WrapCallback(this, Callback::AllocateBuffer)),
-                static_cast<uv_read_cb>(WrapCallback(this, Callback::EchoRead))
-        );
-    } else
-    {
-        uv_close((uv_handle_t *) client, NULL);
-    }
+        uv_read_start((uv_stream_t *) client,
+                      Author::Core::Server::AllocateBuffer,
+                      Author::Core::Server::EchoRead);
+    else uv_close((uv_handle_t *) client, nullptr);
 }
-
-
-void Author::Core::Server::AllocateBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
-{
-
-}
-
-void Author::Core::Server::EchoRead(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
-{
-
-}
-
-void Author::Core::Server::EchoWrite(uv_write_t *req, int status)
-{
-
-}
-
-
-void *Author::Core::Server::WrapCallback(void *context, Callback cb)
-{
-    switch (cb)
-    {
-        case Callback::OnClientConnected:
-            static_cast<Server *>(context)->OnClientConnected();
-            break;
-        case Callback::AllocateBuffer:
-            static_cast<Server *>(context)->AllocateBuffer();
-            break;
-        case Callback::EchoRead:
-            static_cast<Server *>(context)->EchoRead();
-            break;
-        case Callback::EchoWrite:
-            static_cast<Server *>(context)->EchoWrite();
-            break;
-    }
-}
-#pragma clang diagnostic pop
