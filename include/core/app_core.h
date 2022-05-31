@@ -3,10 +3,7 @@
 // AUTHOR :: Authoritative Server Creation Tool ::
 // (c) 2022 Cameron Jensen ::
 // =========================================================
-// [core/appCore]
-// =========================================================
-// Notes:
-// =========================================================
+
 #include "core/ui/ui.h"
 #include "core/server.h"
 
@@ -16,6 +13,7 @@ namespace Author
     {
         bool appShouldClose;
         UI::UI *ui;
+        std::thread serverThread;
         Core::ServerLauncher serverLauncher;
     public:
         AppCore();

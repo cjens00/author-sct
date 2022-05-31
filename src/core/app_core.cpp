@@ -2,10 +2,7 @@
 // AUTHOR :: Authoritative Server Creation Tool ::
 // (c) 2022 Cameron Jensen ::
 // =========================================================
-// [core/appCore]
-// =========================================================
-// Notes:
-// =========================================================
+
 #include "core/app_core.h"
 
 Author::AppCore::AppCore()
@@ -26,10 +23,15 @@ Author::AppCore::AppCore(IVec2 windowSize)
 void Author::AppCore::Run()
 {
     /// TODO: Start this in a new thread
-    serverLauncher.Start(ui->GetConsole());
+    auto console = ui->GetConsole();
+    serverThread = std::thread([&]()
+                               {
+                                   serverLauncher.Start(console);
+                               });
 
     while (!(appShouldClose = ui->appShouldClose))
     {
         this->ui->Tick();
     }
+    if (serverThread.joinable()) serverThread.join();
 }

@@ -1,10 +1,12 @@
 #include <iostream>
-#include <format>
 #include "core/server.h"
 
 /// Currently using https://github.com/delaemon/libuv-tutorial/blob/master/tcp-echo-server.c
-/// Thank you @delaemon
-/// Under construction
+/// as a skeleton to get the network code up and functional. Thank you @delaemon.
+/// Under construction (Basically, it's an absolute disaster).
+/// Please message me on GitHub if interested in contributing
+/// as the project is still very new and subject to change (completely).
+/// @cjens00 :: https://github.com/cjens00/
 
 // Singleton, the only instance of ServerData that should exist
 Author::Core::Server::ServerData sd;
@@ -27,9 +29,10 @@ int Author::Core::ServerLauncher::Start(Console *console)
     uv_tcp_t server;
     uv_tcp_init(serverData.loop, &server);
     uv_ip4_addr("0.0.0.0", 12908, &serverData.addr);
-    uv_tcp_bind(&server, (const struct sockaddr*)&serverData.addr, 0);
-    int r = uv_listen((uv_stream_t*)&server, 128, Author::Core::Server::OnNewConnection);
-    if (r) {
+    uv_tcp_bind(&server, (const struct sockaddr *) &serverData.addr, 0);
+    int r = uv_listen((uv_stream_t *) &server, 128, Author::Core::Server::OnNewConnection);
+    if (r)
+    {
         fprintf(stderr, "Listen error %s\n", uv_strerror(r));
         return 1;
     }
@@ -45,10 +48,7 @@ void Author::Core::Server::AllocateBuffer(uv_handle_t *handle, size_t suggested_
 
 void Author::Core::Server::EchoWrite(uv_write_t *req, int status)
 {
-    if (status)
-    {
-        fprintf(stderr, "Write error %s\n", uv_strerror(status));
-    }
+    if (status) fprintf(stderr, "Write error %s\n", uv_strerror(status));
     free(req);
 }
 
