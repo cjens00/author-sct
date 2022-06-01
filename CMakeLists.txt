@@ -12,7 +12,7 @@ add_executable(
         author
         src/main.cpp
         src/core/app_core.cpp
-        src/core/server.cpp
+        src/core/Server.cpp
         src/core/ui/console.cpp
         src/core/ui/ui.cpp
         src/core/ui/renderer.cpp
@@ -24,7 +24,7 @@ add_executable(
         lib/imgui/src/imgui_impl_opengl3.cpp
         lib/imgui/src/imgui_tables.cpp
         lib/imgui/src/imgui_widgets.cpp
-)
+        include/rev2/helper/iobserver.cpp include/rev2/helper/IObserver.h src/rev2/net/Server.cpp src/rev2/net/server.h src/rev2/net/ISocket.cpp src/rev2/net/INetClient.h)
 
 target_include_directories(
         author PUBLIC
